@@ -146,6 +146,30 @@ class TensorClient:
             )
         return data
 
+    def get_all_slugs(self):
+        """Get slugs of all collections"""
+        query = """
+            query CollectionsStats {
+                allCollections {
+                    total
+                    collections {
+                        slug
+                        name
+                    }
+                }
+            }
+        """
+        variables = {"page": 1, "limit": 50}
+        data = self.send_query(query, variables)
+        slugs = []
+        total = data["allCollections"]["total"]
+        while len(slugs) < total:
+            data = self.send_query(query, variables)
+            for collection in data["allCollections"]["collections"]:
+                slugs.append(collection["slug"])
+            variables["page"] += 1
+        return slugs
+
     def get_collection_infos(self, slug: str):
         """
         Retrieve the main information about a collection including buyNowPrice,
